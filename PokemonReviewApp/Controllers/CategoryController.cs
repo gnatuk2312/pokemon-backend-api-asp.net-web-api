@@ -63,6 +63,19 @@ namespace PokemonReviewApp.Controllers
             return Ok(pokemons);
         }
 
+        [HttpGet("{pokeId}/categories")]
+        [ProducesResponseType(200, Type = typeof(IEnumerable<Category>))]
+        [ProducesResponseType(400)]
+        public IActionResult GetCategoriesByPokemon(int pokeId)
+        {
+            var categories = _mapper.Map<List<CategoryDto>>(_categoryRepository.GetCategoriesByPokemon(pokeId));
+
+            if (!ModelState.IsValid)
+                return BadRequest();
+
+            return Ok(categories);
+        }
+
         [HttpPost]
         [ProducesResponseType(204)]
         [ProducesResponseType(400)]
@@ -118,6 +131,29 @@ namespace PokemonReviewApp.Controllers
             if (!_categoryRepository.UpdateCategory(categoryMap))
             {
                 ModelState.AddModelError("", "Something went wrong while updating category");
+                return StatusCode(500, ModelState);
+            }
+
+            return NoContent();
+        }
+
+        [HttpDelete("{categoryId}")]
+        [ProducesResponseType(204)]
+        [ProducesResponseType(400)]
+        [ProducesResponseType(404)]
+        public IActionResult DeleteCategory(int categoryId)
+        {
+            var category = _categoryRepository.GetCategory(categoryId);
+
+            if (category == null)
+                return NotFound();
+
+            if (!ModelState.IsValid)
+                return BadRequest();
+
+            if (!_categoryRepository.DeleteCategory(category))
+            {
+                ModelState.AddModelError("", "Something went wrong while deleting category");
                 return StatusCode(500, ModelState);
             }
 
